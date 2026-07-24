@@ -8,7 +8,7 @@
 </head>
 <body class="classic-theme">
 
-    <!-- Audio Elements for Sound FX -->
+    <!-- Audio Elements for Sound FX & BGM -->
     <audio id="sound-dice" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" preload="auto"></audio>
     <audio id="sound-move" src="https://assets.mixkit.co/active_storage/sfx/2583/2583-preview.mp3" preload="auto"></audio>
     <audio id="sound-kill" src="https://assets.mixkit.co/active_storage/sfx/2429/2429-preview.mp3" preload="auto"></audio>
@@ -17,7 +17,7 @@
     <!-- 0. LOGIN / SIGNUP SCREEN -->
     <div id="auth-screen" class="screen">
         <div class="auth-card">
-            <h2 class="game-logo">The Golden Dice Clan </h2>
+            <h2 class="game-logo">LUDO ROYALE</h2>
             <p class="subtitle" id="auth-subtitle">Login to your account</p>
             
             <form id="auth-form" onsubmit="handleAuth(event)">
@@ -42,10 +42,11 @@
     <div id="home-screen" class="screen hidden">
         <div class="home-card">
             
-            <!-- Top Bar: Coins & Settings -->
+            <!-- Top Bar: Coins, Sound Toggle & Settings -->
             <div class="home-top-bar">
                 <div class="currency-box">🪙 <span id="user-coins">1,000</span></div>
                 <div style="display: flex; gap: 5px;">
+                    <button class="icon-btn-small" onclick="toggleSoundQuick()" id="quick-sound-btn" title="Toggle Sound">🔊</button>
                     <button class="icon-btn-small" onclick="toggleModal('leaderboard-modal', true)" title="Leaderboard">🏆</button>
                     <button class="icon-btn-small" onclick="toggleModal('settings-modal', true)">⚙️</button>
                 </div>
@@ -53,7 +54,7 @@
 
             <!-- Profile Info (Clickable to open Profile Modal) -->
             <div class="profile-section" onclick="openProfileModal()" style="cursor: pointer;" title="View Profile">
-                <div class="avatar">👑</div>
+                <div class="avatar" id="home-avatar-display" title="Click to Change Avatar" onclick="event.stopPropagation(); toggleModal('avatar-modal', true);">👑</div>
                 <div class="profile-info">
                     <h3 id="user-display-name">Player</h3>
                     <p class="user-level" id="user-stats-text">Wins: 0 | Matches: 0</p>
@@ -75,7 +76,8 @@
             <!-- Extra Action Buttons -->
             <div class="home-actions">
                 <button class="action-btn" onclick="toggleModal('shop-modal', true)">🛒 Shop</button>
-                <button class="action-btn" onclick="claimSpin()">🎡 Daily Spin</button>
+                <button class="action-btn" onclick="claimStreakReward()">🎁 Streak</button>
+                <button class="action-btn" onclick="claimSpin()">🎡 Spin</button>
                 <button class="action-btn logout-text-btn" onclick="logout()">🚪 Logout</button>
             </div>
 
@@ -241,7 +243,7 @@
     <div id="profile-modal" class="modal hidden">
         <div class="modal-card profile-card">
             <h3>👤 PLAYER PROFILE</h3>
-            <div class="profile-big-avatar">👑</div>
+            <div class="profile-big-avatar" id="prof-big-avatar">👑</div>
             <div class="profile-details">
                 <p><strong>Username:</strong> <span id="prof-username">-</span></p>
                 <p><strong>Total Matches:</strong> <span id="prof-matches">0</span></p>
@@ -249,11 +251,44 @@
                 <p><strong>Win Rate:</strong> <span id="prof-winrate">0%</span></p>
                 <p><strong>Total Coins:</strong> 🪙 <span id="prof-coins">1,000</span></p>
             </div>
+            <button class="action-btn" style="margin-bottom: 8px; width:100%; color:#d4af37;" onclick="toggleModal('profile-modal', false); toggleModal('avatar-modal', true);">Change Avatar 🎨</button>
             <button class="primary-btn close-btn" onclick="toggleModal('profile-modal', false)">CLOSE</button>
         </div>
     </div>
 
-    <!-- 7. REALISTIC DAILY SPIN MODAL -->
+    <!-- 7. AVATAR SELECTOR MODAL -->
+    <div id="avatar-modal" class="modal hidden">
+        <div class="modal-card">
+            <h3>🎨 CHOOSE AVATAR</h3>
+            <p class="modal-subtitle">Select your Royale Avatar</p>
+            <div class="avatar-grid">
+                <div class="avatar-option" onclick="selectAvatar('👑')">👑</div>
+                <div class="avatar-option" onclick="selectAvatar('🦁')">🦁</div>
+                <div class="avatar-option" onclick="selectAvatar('🐉')">🐉</div>
+                <div class="avatar-option" onclick="selectAvatar('⚡')">⚡</div>
+                <div class="avatar-option" onclick="selectAvatar('🦅')">🦅</div>
+                <div class="avatar-option" onclick="selectAvatar('💎')">💎</div>
+            </div>
+            <button class="primary-btn close-btn" onclick="toggleModal('avatar-modal', false)">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- 8. DAILY LOGIN STREAK REWARD MODAL -->
+    <div id="streak-modal" class="modal hidden">
+        <div class="modal-card">
+            <h3>🎁 DAILY STREAK</h3>
+            <p class="modal-subtitle">Claim your daily login bonus!</p>
+            <div class="streak-box">
+                <div class="streak-day"><span>Day 1</span>🪙 50</div>
+                <div class="streak-day"><span>Day 2</span>🪙 100</div>
+                <div class="streak-day"><span>Day 3</span>🪙 200</div>
+            </div>
+            <button id="streak-claim-btn" class="primary-btn" onclick="claimRewardAction()">CLAIM 🪙 100</button>
+            <button class="action-btn close-btn" style="margin-top:10px;" onclick="toggleModal('streak-modal', false)">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- 9. REALISTIC DAILY SPIN MODAL -->
     <div id="spin-modal" class="modal hidden">
         <div class="modal-card spin-card">
             <h3>🎡 DAILY LUCKY SPIN</h3>
@@ -277,5 +312,5 @@
 
     <script src="app.js"></script>
 </body>
-                  </html>
-              
+    </html>
+    
