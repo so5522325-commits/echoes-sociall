@@ -105,6 +105,7 @@ body.gold-theme .dice-box {
     justify-content: center;
     border-radius: 50%;
     border: 1px solid #d4af37;
+    cursor: pointer;
 }
 
 .profile-info { text-align: left; }
@@ -212,7 +213,7 @@ body.gold-theme .dice-box {
 
 .close-btn { margin-top: 10px; padding: 8px; }
 
-/* Leaderboard & Profile Styling */
+/* Leaderboard, Profile & Avatar Picker Styling */
 .leaderboard-box { max-height: 150px; overflow-y: auto; margin-bottom: 15px; }
 .lb-row { display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 6px 10px; border-radius: 6px; margin-bottom: 5px; font-size: 12px; }
 
@@ -242,6 +243,43 @@ body.gold-theme .dice-box {
     border: 1px solid rgba(212, 175, 55, 0.2);
 }
 .profile-details strong { color: #d4af37; }
+
+.avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 15px;
+}
+.avatar-option {
+    font-size: 28px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #d4af37;
+    border-radius: 10px;
+    padding: 10px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.avatar-option:hover { transform: scale(1.1); background: rgba(212,175,55,0.2); }
+
+.streak-box {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+.streak-day {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid #d4af37;
+    border-radius: 8px;
+    padding: 8px;
+    flex: 1;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: #ffd700;
+}
+.streak-day span { font-size: 10px; color: #aaa; }
 
 /* Wheel Styling */
 .wheel-container {
@@ -475,3 +513,4 @@ h1 { font-size: 22px; letter-spacing: 2px; color: #d4af37; text-shadow: 0 0 10px
 
 .controls { margin-top: 8px; }
 #status { font-size: 14px; font-weight: 500; color: #d4af37; }
+    
