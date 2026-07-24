@@ -15,6 +15,15 @@ function playSound(type) {
     }
 }
 
+function toggleSoundQuick() {
+    const soundToggle = document.getElementById('sound-toggle');
+    const quickBtn = document.getElementById('quick-sound-btn');
+    if (soundToggle) {
+        soundToggle.checked = !soundToggle.checked;
+        quickBtn.innerText = soundToggle.checked ? '🔊' : '🔇';
+    }
+}
+
 function toggleAuthMode(e) {
     e.preventDefault();
     isLoginMode = !isLoginMode;
@@ -64,7 +73,7 @@ function handleAuth(e) {
         if (users[userInp]) {
             errorMsg.innerText = "Username already exists!";
         } else {
-            users[userInp] = { pass: passInp, wins: 0, matches: 0 };
+            users[userInp] = { pass: passInp, wins: 0, matches: 0, avatar: '👑' };
             localStorage.setItem('ludo_users', JSON.stringify(users));
             localStorage.setItem('ludo_current_user', userInp);
             alert("Account created successfully!");
@@ -78,8 +87,11 @@ function showHomeScreen(username) {
     document.getElementById('user-coins').innerText = currentCoins.toLocaleString();
     
     let users = JSON.parse(localStorage.getItem('ludo_users') || '{}');
-    let uData = users[username] || { wins: 0, matches: 0 };
+    let uData = users[username] || { wins: 0, matches: 0, avatar: '👑' };
+    
     document.getElementById('user-stats-text').innerText = `Wins: ${uData.wins} | Matches: ${uData.matches}`;
+    const avatarChar = uData.avatar || '👑';
+    document.getElementById('home-avatar-display').innerText = avatarChar;
 
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('game-screen').classList.add('hidden');
@@ -102,19 +114,35 @@ function openProfileModal() {
     if (!currentUser) return;
 
     let users = JSON.parse(localStorage.getItem('ludo_users') || '{}');
-    let uData = users[currentUser] || { wins: 0, matches: 0 };
+    let uData = users[currentUser] || { wins: 0, matches: 0, avatar: '👑' };
 
     let wins = uData.wins || 0;
     let matches = uData.matches || 0;
     let winRate = matches > 0 ? Math.round((wins / matches) * 100) : 0;
+    let avatarChar = uData.avatar || '👑';
 
     document.getElementById('prof-username').innerText = currentUser;
     document.getElementById('prof-matches').innerText = matches;
     document.getElementById('prof-wins').innerText = wins;
     document.getElementById('prof-winrate').innerText = winRate + '%';
     document.getElementById('prof-coins').innerText = currentCoins.toLocaleString();
+    document.getElementById('prof-big-avatar').innerText = avatarChar;
 
     toggleModal('profile-modal', true);
+}
+
+function selectAvatar(avatarEmoji) {
+    const currentUser = localStorage.getItem('ludo_current_user');
+    if (!currentUser) return;
+
+    let users = JSON.parse(localStorage.getItem('ludo_users') || '{}');
+    if (users[currentUser]) {
+        users[currentUser].avatar = avatarEmoji;
+        localStorage.setItem('ludo_users', JSON.stringify(users));
+        document.getElementById('home-avatar-display').innerText = avatarEmoji;
+        toggleModal('avatar-modal', false);
+        alert(`🎉 Avatar updated to ${avatarEmoji}!`);
+    }
 }
 
 function updateLeaderboardData() {
@@ -153,6 +181,27 @@ function buyItem(itemName, cost, themeName) {
     } else {
         alert("❌ Not enough coins! Play matches or spin the wheel.");
     }
+}
+
+// Daily Streak Logic
+function claimStreakReward() {
+    toggleModal('streak-modal', true);
+}
+
+function claimRewardAction() {
+    const lastClaim = localStorage.getItem('ludo_last_streak');
+    const todayDate = new Date().toDateString();
+
+    if (lastClaim === todayDate) {
+        alert("❌ You have already claimed your daily streak reward today!");
+        return;
+    }
+
+    currentCoins += 100;
+    document.getElementById('user-coins').innerText = currentCoins.toLocaleString();
+    localStorage.setItem('ludo_last_streak', todayDate);
+    alert("🎉 Daily Streak Claimed Successfully! 🪙 100 Added.");
+    toggleModal('streak-modal', false);
 }
 
 // Daily Spin Logic
@@ -550,3 +599,4 @@ function updatePawnUI(color, pawnIndex, step) {
 }
 
 renderBoardCells();
+    
