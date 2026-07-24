@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ludo Royale - Full Final Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="classic-theme">
+
+    <!-- Audio Elements for Sound FX -->
+    <audio id="sound-dice" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" preload="auto"></audio>
+    <audio id="sound-move" src="https://assets.mixkit.co/active_storage/sfx/2583/2583-preview.mp3" preload="auto"></audio>
+    <audio id="sound-kill" src="https://assets.mixkit.co/active_storage/sfx/2429/2429-preview.mp3" preload="auto"></audio>
+    <audio id="sound-win" src="https://assets.mixkit.co/active_storage/sfx/2700/2700-preview.mp3" preload="auto"></audio>
+
+    <!-- 0. LOGIN / SIGNUP SCREEN -->
+    <div id="auth-screen" class="screen">
+        <div class="auth-card">
+            <h2 class="game-logo">The Golden Dice Clan </h2>
+            <p class="subtitle" id="auth-subtitle">Login to your account</p>
+            
+            <form id="auth-form" onsubmit="handleAuth(event)">
+                <div class="input-group">
+                    <input type="text" id="username" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="primary-btn" id="auth-btn">LOGIN</button>
+            </form>
+
+            <p class="toggle-text">
+                <span id="toggle-msg">Don't have an account?</span> 
+                <a href="#" id="toggle-link" onclick="toggleAuthMode(event)">Sign Up</a>
+            </p>
+            <p id="auth-error" class="error-msg"></p>
+        </div>
+    </div>
+
+    <!-- 1. HOME PAGE / MAIN MENU -->
+    <div id="home-screen" class="screen hidden">
+        <div class="home-card">
+            
+            <!-- Top Bar: Coins & Settings -->
+            <div class="home-top-bar">
+                <div class="currency-box">🪙 <span id="user-coins">1,000</span></div>
+                <div style="display: flex; gap: 5px;">
+                    <button class="icon-btn-small" onclick="toggleModal('leaderboard-modal', true)" title="Leaderboard">🏆</button>
+                    <button class="icon-btn-small" onclick="toggleModal('settings-modal', true)">⚙️</button>
+                </div>
+            </div>
+
+            <!-- Profile Info (Clickable to open Profile Modal) -->
+            <div class="profile-section" onclick="openProfileModal()" style="cursor: pointer;" title="View Profile">
+                <div class="avatar">👑</div>
+                <div class="profile-info">
+                    <h3 id="user-display-name">Player</h3>
+                    <p class="user-level" id="user-stats-text">Wins: 0 | Matches: 0</p>
+                </div>
+            </div>
+
+            <h1 class="game-logo">LUDO ROYALE</h1>
+
+            <!-- Mode Selection Buttons -->
+            <div class="mode-buttons">
+                <button class="primary-btn mode-btn" onclick="startGame('pass_and_play')">
+                    👥 PASS & PLAY (2-4 Players)
+                </button>
+                <button class="primary-btn mode-btn secondary-mode" onclick="startGame('vs_computer')">
+                    🤖 VS COMPUTER (Smart AI)
+                </button>
+            </div>
+
+            <!-- Extra Action Buttons -->
+            <div class="home-actions">
+                <button class="action-btn" onclick="toggleModal('shop-modal', true)">🛒 Shop</button>
+                <button class="action-btn" onclick="claimSpin()">🎡 Daily Spin</button>
+                <button class="action-btn logout-text-btn" onclick="logout()">🚪 Logout</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 2. MAIN LUDO GAME PAGE -->
+    <div id="game-screen" class="screen hidden">
+        <div class="game-container">
+            
+            <!-- Game Header -->
+            <div class="game-header">
+                <h1>LUDO ROYALE</h1>
+                <div class="header-actions">
+                    <button class="icon-btn" onclick="toggleModal('settings-modal', true)">⚙️</button>
+                    <button class="icon-btn" onclick="goHome()" title="Back to Home">🏠</button>
+                    <button class="icon-btn logout-icon" onclick="logout()" title="Logout">🚪</button>
+                </div>
+            </div>
+
+            <!-- Turn Timer Progress Bar -->
+            <div class="timer-bar-container">
+                <div id="turn-timer-fill" class="timer-fill"></div>
+            </div>
+
+            <!-- Outer Wrapper for Board & Outside Dice -->
+            <div class="outer-board-wrapper">
+
+                <!-- Top Outer Dice Row -->
+                <div class="top-dice-row">
+                    <div class="outer-dice red-dice active-turn" id="red-dice-box" onclick="rollDice('red')">
+                        <span class="p-name">RED</span>
+                        <div class="dice-box" id="dice-red">🎲</div>
+                    </div>
+                    <div class="outer-dice green-dice" id="green-dice-box" onclick="rollDice('green')">
+                        <span class="p-name">GREEN</span>
+                        <div class="dice-box" id="dice-green">🎲</div>
+                    </div>
+                </div>
+
+                <!-- Main Board -->
+                <div class="ludo-board" id="board">
+                    
+                    <div class="base red-base">
+                        <div class="base-inner">
+                            <div class="pawn red-pawn" id="red-0" onclick="movePawn('red', 0)"></div>
+                            <div class="pawn red-pawn" id="red-1" onclick="movePawn('red', 1)"></div>
+                            <div class="pawn red-pawn" id="red-2" onclick="movePawn('red', 2)"></div>
+                            <div class="pawn red-pawn" id="red-3" onclick="movePawn('red', 3)"></div>
+                        </div>
+                    </div>
+
+                    <div class="base green-base">
+                        <div class="base-inner">
+                            <div class="pawn green-pawn" id="green-0" onclick="movePawn('green', 0)"></div>
+                            <div class="pawn green-pawn" id="green-1" onclick="movePawn('green', 1)"></div>
+                            <div class="pawn green-pawn" id="green-2" onclick="movePawn('green', 2)"></div>
+                            <div class="pawn green-pawn" id="green-3" onclick="movePawn('green', 3)"></div>
+                        </div>
+                    </div>
+
+                    <div class="base yellow-base">
+                        <div class="base-inner">
+                            <div class="pawn yellow-pawn" id="yellow-0" onclick="movePawn('yellow', 0)"></div>
+                            <div class="pawn yellow-pawn" id="yellow-1" onclick="movePawn('yellow', 1)"></div>
+                            <div class="pawn yellow-pawn" id="yellow-2" onclick="movePawn('yellow', 2)"></div>
+                            <div class="pawn yellow-pawn" id="yellow-3" onclick="movePawn('yellow', 3)"></div>
+                        </div>
+                    </div>
+
+                    <div class="base blue-base">
+                        <div class="base-inner">
+                            <div class="pawn blue-pawn" id="blue-0" onclick="movePawn('blue', 0)"></div>
+                            <div class="pawn blue-pawn" id="blue-1" onclick="movePawn('blue', 1)"></div>
+                            <div class="pawn blue-pawn" id="blue-2" onclick="movePawn('blue', 2)"></div>
+                            <div class="pawn blue-pawn" id="blue-3" onclick="movePawn('blue', 3)"></div>
+                        </div>
+                    </div>
+
+                    <div class="center-home">
+                        <div class="tri red-tri"></div>
+                        <div class="tri green-tri"></div>
+                        <div class="tri yellow-tri"></div>
+                        <div class="tri blue-tri"></div>
+                    </div>
+
+                </div>
+
+                <!-- Bottom Outer Dice Row -->
+                <div class="bottom-dice-row">
+                    <div class="outer-dice blue-dice" id="blue-dice-box" onclick="rollDice('blue')">
+                        <span class="p-name">BLUE</span>
+                        <div class="dice-box" id="dice-blue">🎲</div>
+                    </div>
+                    <div class="outer-dice yellow-dice" id="yellow-dice-box" onclick="rollDice('yellow')">
+                        <span class="p-name">YELLOW</span>
+                        <div class="dice-box" id="dice-yellow">🎲</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Quick Emojis Bar -->
+            <div class="emoji-bar">
+                <button onclick="sendEmoji('😃')">😃</button>
+                <button onclick="sendEmoji('🔥')">🔥</button>
+                <button onclick="sendEmoji('👍')">👍</button>
+                <button onclick="sendEmoji('👑')">👑</button>
+                <button onclick="sendEmoji('😱')">😱</button>
+            </div>
+            <div id="floating-emoji" class="floating-emoji-box"></div>
+
+            <div class="controls">
+                <p id="status">Red Player's Turn (Tap your Dice!)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. SHOP MODAL -->
+    <div id="shop-modal" class="modal hidden">
+        <div class="modal-card">
+            <h3>🛒 ROYALE SHOP</h3>
+            <p class="modal-subtitle">Unlock Premium Themes</p>
+            <div class="shop-item">
+                <span>✨ Gold Dice Skin</span>
+                <button onclick="buyItem('Gold Dice', 500, 'gold')" class="buy-btn">🪙 500</button>
+            </div>
+            <div class="shop-item">
+                <span>🔥 Neon Board Theme</span>
+                <button onclick="buyItem('Neon Theme', 1200, 'neon')" class="buy-btn">🪙 1,200</button>
+            </div>
+            <button class="primary-btn close-btn" onclick="toggleModal('shop-modal', false)">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- 4. SETTINGS MODAL -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-card">
+            <h3>⚙️ GAME SETTINGS</h3>
+            <div class="setting-item">
+                <span>Sound FX</span>
+                <input type="checkbox" id="sound-toggle" checked>
+            </div>
+            <div class="setting-item">
+                <span>Vibration</span>
+                <input type="checkbox" id="vibrate-toggle" checked>
+            </div>
+            <button class="primary-btn close-btn" onclick="toggleModal('settings-modal', false)">SAVE & CLOSE</button>
+        </div>
+    </div>
+
+    <!-- 5. LEADERBOARD MODAL -->
+    <div id="leaderboard-modal" class="modal hidden">
+        <div class="modal-card">
+            <h3>🏆 LEADERBOARD</h3>
+            <p class="modal-subtitle">Top Royale Players</p>
+            <div id="leaderboard-list" class="leaderboard-box"></div>
+            <button class="primary-btn close-btn" onclick="toggleModal('leaderboard-modal', false)">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- 6. PROFILE MODAL -->
+    <div id="profile-modal" class="modal hidden">
+        <div class="modal-card profile-card">
+            <h3>👤 PLAYER PROFILE</h3>
+            <div class="profile-big-avatar">👑</div>
+            <div class="profile-details">
+                <p><strong>Username:</strong> <span id="prof-username">-</span></p>
+                <p><strong>Total Matches:</strong> <span id="prof-matches">0</span></p>
+                <p><strong>Matches Won:</strong> <span id="prof-wins">0</span></p>
+                <p><strong>Win Rate:</strong> <span id="prof-winrate">0%</span></p>
+                <p><strong>Total Coins:</strong> 🪙 <span id="prof-coins">1,000</span></p>
+            </div>
+            <button class="primary-btn close-btn" onclick="toggleModal('profile-modal', false)">CLOSE</button>
+        </div>
+    </div>
+
+    <!-- 7. REALISTIC DAILY SPIN MODAL -->
+    <div id="spin-modal" class="modal hidden">
+        <div class="modal-card spin-card">
+            <h3>🎡 DAILY LUCKY SPIN</h3>
+            <p class="modal-subtitle">Spin once a day to earn free bonus coins!</p>
+            
+            <div class="wheel-container">
+                <div class="wheel-pointer">▼</div>
+                <div class="wheel" id="wheel-board">
+                    <div class="wheel-section sec-1">🪙 100</div>
+                    <div class="wheel-section sec-2">🪙 200</div>
+                    <div class="wheel-section sec-3">🪙 300</div>
+                    <div class="wheel-section sec-4">🪙 500</div>
+                </div>
+            </div>
+
+            <button id="spin-trigger-btn" class="primary-btn" onclick="startSpinAnimation()">SPIN NOW!</button>
+            <p id="spin-timer-msg" class="timer-msg"></p>
+            <button class="action-btn close-btn" onclick="toggleModal('spin-modal', false)">CLOSE</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+                  </html>
+              
