@@ -3,301 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Echoes Social - Ludo Game</title>
+    <title>Pro Ludo Wallet App</title>
+    <!-- Appwrite Web SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.1"></script>
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Razorpay Checkout SDK for Auto Payment -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Audio Elements -->
-    <audio id="bg-music" src="https://assets.mixkit.co/music/preview/mixkit-game-level-music-689.mp3" loop preload="auto"></audio>
-    <audio id="sound-dice" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3" preload="auto"></audio>
-    <audio id="sound-move" src="https://assets.mixkit.co/active_storage/sfx/2583/2583-preview.mp3" preload="auto"></audio>
+<div class="app-container">
+    <!-- Wallet Header -->
+    <div class="header">
+        <h2>Ludo Wallet Balance</h2>
+        <div class="balance" id="totalBalance">₹0.00</div>
+        
+        <!-- VIP Tier Badge -->
+        <div class="vip-badge" id="vipTierDisplay">👑 VIP Level 1 (Bronze)</div>
 
-    <!-- ================= 0. AUTH SCREEN (LOGIN & SIGNUP) ================= -->
-    <div id="auth-screen" class="screen">
-        <div class="home-card">
-            <h1 class="game-logo">ECHOES SOCIAL</h1>
-            <p style="text-align: center; color: #94a3b8; font-size: 13px; margin-bottom: 10px;" id="auth-subtitle">Login to start playing!</p>
-            
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button id="tab-login-btn" class="primary-btn" style="flex:1; background:#38bdf8; color:#0f172a;" onclick="switchAuthTab('login')">LOGIN</button>
-                <button id="tab-signup-btn" class="primary-btn" style="flex:1; background:#334155; color:#f8fafc;" onclick="switchAuthTab('signup')">SIGN UP</button>
-            </div>
-
-            <div class="input-cyber-group">
-                <label style="font-size:11px; color:#94a3b8;">EMAIL ADDRESS</label>
-                <input type="email" id="auth-email" placeholder="player@domain.com" style="width:100%; padding:10px; border-radius:8px; background:#0f172a; border:1px solid #334155; color:#fff;">
-            </div>
-
-            <div class="input-cyber-group" style="margin-top:10px;">
-                <label style="font-size:11px; color:#94a3b8;">PASSWORD</label>
-                <input type="password" id="auth-password" placeholder="••••••••" style="width:100%; padding:10px; border-radius:8px; background:#0f172a; border:1px solid #334155; color:#fff;">
-            </div>
-
-            <div class="input-cyber-group" id="username-group" style="display: none; margin-top:10px;">
-                <label style="font-size:11px; color:#94a3b8;">PLAYER USERNAME</label>
-                <input type="text" id="auth-username" placeholder="Enter Player Name" style="width:100%; padding:10px; border-radius:8px; background:#0f172a; border:1px solid #334155; color:#fff;">
-            </div>
-
-            <button class="primary-btn" id="auth-submit-btn" style="margin-top: 15px; width:100%; padding:12px;" onclick="handleAuthSubmit()">LOGIN TO PLAY</button>
-            <button class="action-btn" style="background:#475569; margin-top:8px; width:100%; border:none; padding:10px; border-radius:8px; color:#fff; cursor:pointer;" onclick="playAsGuest()">🎮 PLAY AS GUEST</button>
+        <div class="summary">
+            <div><span>Total Won</span><strong class="income-text" id="totalIncome">+₹0</strong></div>
+            <div><span>Entry Fees Paid</span><strong class="expense-text" id="totalExpense">-₹0</strong></div>
         </div>
     </div>
 
-    <!-- 1. HOME SCREEN -->
-    <div id="home-screen" class="screen hidden">
-        <div class="home-card">
-            <div class="home-top-bar">
-                <div class="currency-box">🪙 <span id="user-coins">1,000</span></div>
-                <div style="display: flex; gap: 5px;">
-                    <button class="icon-btn-small" onclick="toggleQuickSound()" id="quick-sound-btn">🔊</button>
-                    <button class="icon-btn-small" onclick="toggleModal('leaderboard-modal', true)">🏆</button>
-                    <button class="icon-btn-small" onclick="toggleModal('friends-modal', true)">👥</button>
-                    <button class="icon-btn-small" onclick="toggleModal('settings-modal', true)">⚙️</button>
-                    <button class="icon-btn-small" style="background:#ef4444;" onclick="handleLogout()" title="Logout">🚪</button>
+    <div class="content">
+        <!-- Auth Section -->
+        <div id="authBox" class="auth-box active">
+            <h3 style="margin-bottom: 12px; color: #f8fafc;" id="authTitle">Login Karein</h3>
+            <form id="authForm">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="authEmail" required placeholder="player@ludo.com">
                 </div>
-            </div>
-
-            <div class="profile-section" onclick="openProfileModal()">
-                <div class="avatar" id="home-avatar-display">👑</div>
-                <div class="profile-info">
-                    <h3 id="user-display-name">Player</h3>
-                    <p class="user-level" id="user-stats-text">Wins: 0 | Matches: 0</p>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="authPassword" required placeholder="******">
                 </div>
-            </div>
-
-            <h1 class="game-logo">ECHOES SOCIAL</h1>
-
-            <div class="mode-buttons">
-                <button class="primary-btn mode-btn" onclick="openBetModal('pass_and_play')">👥 PASS & PLAY (2-4 Players)</button>
-                <button class="primary-btn mode-btn secondary-mode" onclick="openBetModal('vs_computer')">🤖 VS COMPUTER (Smart AI)</button>
-                <button class="primary-btn mode-btn cyberpunk-mode-btn" onclick="toggleModal('friends-modal', true)">🌐 ROOM CODE / MULTIPLAYER</button>
-            </div>
-
-            <div class="home-actions">
-                <button class="action-btn" onclick="toggleModal('shop-modal', true)">🛒 Shop</button>
-                <button class="action-btn" onclick="claimStreakReward()">🎁 Streak</button>
-                <button class="action-btn" onclick="claimSpin()">🎡 Spin</button>
-            </div>
+                <button type="submit" id="authSubmitBtn">Login</button>
+            </form>
+            <button class="secondary-btn" id="toggleAuthBtn" onclick="toggleAuthMode()">Naya Account Banayein (Signup)</button>
         </div>
-    </div>
 
-    <!-- 2. GAME SCREEN -->
-    <div id="game-screen" class="screen hidden">
-        <div class="game-container">
-            <div class="game-header">
-                <h2>ECHOES SOCIAL</h2>
-                <div class="header-actions">
-                    <button class="icon-btn" onclick="toggleModal('chat-modal', true)">💬</button>
-                    <button class="icon-btn" onclick="toggleModal('settings-modal', true)">⚙️</button>
-                    <button class="icon-btn" onclick="goHome()">🏠</button>
+        <!-- Main App Section -->
+        <div id="walletBox" class="wallet-box">
+            <div class="user-bar">
+                <div class="user-profile">
+                    <img id="userAvatar" class="avatar-img" src="" alt="Avatar" style="width:36px; height:36px; border-radius:50%;">
+                    <span id="userEmailDisplay">Player</span>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span id="soundToggleBtn" onclick="toggleSound()" style="cursor:pointer; font-size: 1.1rem;">🔊</span>
+                    <span class="logout-link" onclick="logout()">Logout</span>
                 </div>
             </div>
 
-            <div class="timer-bar-container">
-                <div id="turn-timer-fill" class="timer-fill"></div>
-            </div>
+            <!-- Back To Home Button -->
+            <button id="backHomeBtn" class="back-home-btn" onclick="showView('home')">⬅️ Back to Home Dashboard</button>
 
-            <div class="outer-board-wrapper">
-                <div class="top-dice-row">
-                    <div class="outer-dice red-dice active-turn" id="red-dice-box" onclick="rollDice('red')">
-                        <span class="p-name">RED</span>
-                        <div class="dice-box" id="dice-red">🎲</div>
+            <!-- VIEW 1: HOME PAGE DASHBOARD -->
+            <div id="viewHome" class="view-section">
+                <div class="promo-banner">
+                    <div class="banner-content">
+                        <span class="badge">LUDO PRO LEAGUE</span>
+                        <h4>Win Big Cash Everyday! 🏆</h4>
+                        <p>100% Safe & Instant Wallet Withdrawal</p>
                     </div>
-                    <div class="outer-dice green-dice" id="green-dice-box" onclick="rollDice('green')">
-                        <span class="p-name">GREEN</span>
-                        <div class="dice-box" id="dice-green">🎲</div>
-                    </div>
+                    <div class="banner-icon">🎲</div>
                 </div>
 
-                <div class="ludo-board" id="board">
-                    <div class="base red-base">
-                        <div class="base-inner">
-                            <div class="pawn red-pawn" id="red-0" onclick="movePawn('red', 0)"></div>
-                            <div class="pawn red-pawn" id="red-1" onclick="movePawn('red', 1)"></div>
-                            <div class="pawn red-pawn" id="red-2" onclick="movePawn('red', 2)"></div>
-                            <div class="pawn red-pawn" id="red-3" onclick="movePawn('red', 3)"></div>
+                <!-- Daily Streak Rewards Bar -->
+                <div class="streak-card">
+                    <div style="font-size: 0.85rem; font-weight: 700; color: #facc15; margin-bottom: 8px;">🔥 Daily Login Streak Bonus</div>
+                    <div class="streak-grid">
+                        <div class="streak-day active">Day 1<br><b>₹1</b></div>
+                        <div class="streak-day">Day 2<br><b>₹2</b></div>
+                        <div class="streak-day">Day 3<br><b>₹3</b></div>
+                        <div class="streak-day">Day 4<br><b>₹5</b></div>
+                        <div class="streak-day">Day 5<br><b>₹10</b></div>
+                    </div>
+                    <button onclick="claimDailyStreak()" id="claimStreakBtn" style="margin-top: 10px; font-size: 0.8rem; padding: 6px;">Claim Today's Bonus</button>
+                </div>
+
+                <h3 class="section-title">Quick Actions</h3>
+
+                <div class="menu-grid">
+                    <div class="menu-card primary-card" onclick="showView('arena')">
+                        <div class="menu-icon">🎮</div>
+                        <div class="menu-info">
+                            <div class="menu-title">Play Ludo Battle</div>
+                            <div class="menu-desc">Join Arena & Win Real Cash</div>
                         </div>
+                        <div class="arrow-btn">➔</div>
                     </div>
-                    <div class="base green-base">
-                        <div class="base-inner">
-                            <div class="pawn green-pawn" id="green-0" onclick="movePawn('green', 0)"></div>
-                            <div class="pawn green-pawn" id="green-1" onclick="movePawn('green', 1)"></div>
-                            <div class="pawn green-pawn" id="green-2" onclick="movePawn('green', 2)"></div>
-                            <div class="pawn green-pawn" id="green-3" onclick="movePawn('green', 3)"></div>
+
+                    <div class="menu-card wallet-card" onclick="showView('addMoney')">
+                        <div class="menu-icon">💳</div>
+                        <div class="menu-info">
+                            <div class="menu-title">Add / Withdraw Cash</div>
+                            <div class="menu-desc">Razorpay, UPI & Recharge</div>
                         </div>
+                        <div class="arrow-btn">➔</div>
                     </div>
-                    <div class="base yellow-base">
-                        <div class="base-inner">
-                            <div class="pawn yellow-pawn" id="yellow-0" onclick="movePawn('yellow', 0)"></div>
-                            <div class="pawn yellow-pawn" id="yellow-1" onclick="movePawn('yellow', 1)"></div>
-                            <div class="pawn yellow-pawn" id="yellow-2" onclick="movePawn('yellow', 2)"></div>
-                            <div class="pawn yellow-pawn" id="yellow-3" onclick="movePawn('yellow', 3)"></div>
+
+                    <div class="menu-card" onclick="openSpinModal()">
+                        <div class="menu-icon">🎡</div>
+                        <div class="menu-info">
+                            <div class="menu-title">Daily Lucky Spin</div>
+                            <div class="menu-desc">Win Free Bonus Cash Daily</div>
                         </div>
+                        <div class="arrow-btn">➔</div>
                     </div>
-                    <div class="base blue-base">
-                        <div class="base-inner">
-                            <div class="pawn blue-pawn" id="blue-0" onclick="movePawn('blue', 0)"></div>
-                            <div class="pawn blue-pawn" id="blue-1" onclick="movePawn('blue', 1)"></div>
-                            <div class="pawn blue-pawn" id="blue-2" onclick="movePawn('blue', 2)"></div>
-                            <div class="pawn blue-pawn" id="blue-3" onclick="movePawn('blue', 3)"></div>
+
+                    <div class="menu-card" onclick="showView('leaderboard')">
+                        <div class="menu-icon">🏆</div>
+                        <div class="menu-info">
+                            <div class="menu-title">Top Leaderboard</div>
+                            <div class="menu-desc">Check Today's Top Winners</div>
                         </div>
+                        <div class="arrow-btn">➔</div>
                     </div>
-                    <div class="center-home">
-                        <div class="tri red-tri"></div>
-                        <div class="tri green-tri"></div>
-                        <div class="tri yellow-tri"></div>
-                        <div class="tri blue-tri"></div>
+
+                    <div class="menu-card" onclick="showView('history')" style="grid-column: span 2;">
+                        <div class="menu-icon">📜</div>
+                        <div class="menu-info">
+                            <div class="menu-title">Passbook / History</div>
+                            <div class="menu-desc">Track All Win/Loss Cash</div>
+                        </div>
+                        <div class="arrow-btn">➔</div>
                     </div>
                 </div>
 
-                <div class="bottom-dice-row">
-                    <div class="outer-dice blue-dice" id="blue-dice-box" onclick="rollDice('blue')">
-                        <span class="p-name">BLUE</span>
-                        <div class="dice-box" id="dice-blue">🎲</div>
+                <div class="whatsapp-invite-box">
+                    <div>
+                        <strong style="color: #22c55e; font-size: 0.9rem;">📲 WhatsApp Invite & Earn</strong>
+                        <p style="font-size: 0.75rem; color: #cbd5e1;">Invite friends & get ₹50 cash + 2% lifetime bonus!</p>
                     </div>
-                    <div class="outer-dice yellow-dice" id="yellow-dice-box" onclick="rollDice('yellow')">
-                        <span class="p-name">YELLOW</span>
-                        <div class="dice-box" id="dice-yellow">🎲</div>
+                    <button onclick="shareOnWhatsApp()" class="wa-btn">Share 💬</button>
+                </div>
+
+                <div class="tournament-box">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 700; color: #38bdf8; font-size: 0.85rem;">🏆 Daily Free Mega League</span>
+                        <span style="background: #22c55e; color: #000; font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; font-weight: 800;">FREE ENTRY</span>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #94a3b8;">Prize Pool: <b>₹1,000 Cash</b> • Top 10 Winners</div>
+                </div>
+
+                <div class="live-winners-bar">
+                    <span class="live-dot"></span>
+                    <marquee behavior="scroll" direction="left" scrollamount="4">
+                        🔥 <b>Rahul M.</b> won ₹180 in Ludo Match! &nbsp;&nbsp;•&nbsp;&nbsp; 🏆 <b>Saddam</b> won ₹90! &nbsp;&nbsp;•&nbsp;&nbsp; 🎉 <b>Vikas K.</b> deposited ₹100!
+                    </marquee>
+                </div>
+            </div>
+
+            <!-- VIEW 2: PROFESSIONAL LUDO ARENA -->
+            <div id="viewArena" class="view-section" style="display: none;">
+                <div class="user-bar" style="margin-bottom: 8px;">
+                    <div>🔴 <strong style="color:#ef4444;">You (Red)</strong></div>
+                    <div>⏳ Timer: <strong id="timerDisplay" style="color:#f59e0b;">15</strong>s</div>
+                    <div>🟢 <strong style="color:#22c55e;">Bot Opponent</strong></div>
+                </div>
+
+                <div class="arena-box">
+                    <div id="matchSetupBox" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <select id="betAmountSelect">
+                            <option value="10">Match Fee: ₹10 (Prize: ₹18)</option>
+                            <option value="50">Match Fee: ₹50 (Prize: ₹90)</option>
+                            <option value="100">Match Fee: ₹100 (Prize: ₹180)</option>
+                        </select>
+                        <button onclick="startMatch()" style="margin:0; flex:0.6; background:#22c55e;">Join Match</button>
+                    </div>
+
+                    <div style="font-size: 0.7rem; color: #facc15; margin-bottom: 6px; background: rgba(250,204,21,0.1); padding: 4px; border-radius: 6px;">
+                        ℹ️ Niyam: 6 aane par gotti bahar ya extra turn! Gotti katne par extra chance aur ₹5 bonus!
+                    </div>
+
+                    <div class="board-container">
+                        <canvas id="ludoBoard" width="450" height="450"></canvas>
+                    </div>
+
+                    <div class="game-controls">
+                        <div style="font-size: 0.85rem; text-align: left;">
+                            <div>Turn: <strong id="turnDisplay" style="color:#38bdf8;">Your Turn</strong></div>
+                            <div>Dice Roll: <strong id="diceDisplay" style="color:#facc15;">-</strong></div>
+                        </div>
+                        <button class="dice-btn" id="rollDiceBtn" onclick="handleDiceRoll()" disabled>🎲 Roll Dice</button>
+                    </div>
+
+                    <div style="display: flex; gap: 6px; margin-top: 10px; justify-content: center; overflow-x: auto;">
+                        <button class="chat-chip" onclick="sendChat('Well Played! 👏')">Well Played! 👏</button>
+                        <button class="chat-chip" onclick="sendChat('Hurry Up! ⚡')">Hurry Up! ⚡</button>
+                        <button class="chat-chip" onclick="sendChat('Oops! 😅')">Oops! 😅</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 3: ADD CASH & UPI WITHDRAWAL -->
+            <div id="viewAddMoney" class="view-section" style="display: none;">
+                <h3 class="section-title">Add Deposit Cash (Auto Payment)</h3>
+                <form id="txnForm" style="margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label>Add Amount (₹)</label>
+                        <input type="number" id="txnAmount" placeholder="Enter amount" required min="10">
+                    </div>
+                    <button type="submit" style="background: #6366f1;">Deposit via Razorpay/UPI</button>
+                </form>
+
+                <hr style="border-color: #334155; margin: 15px 0;">
+
+                <h3 class="section-title">Instant UPI Withdrawal</h3>
+                <form id="withdrawForm">
+                    <div class="form-group">
+                        <label>UPI ID (e.g. user@upi)</label>
+                        <input type="text" id="withdrawUpi" placeholder="example@upi" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Withdraw Amount (₹)</label>
+                        <input type="number" id="withdrawAmount" placeholder="Min ₹50" required min="50">
+                    </div>
+                    <button type="submit" style="background: #22c55e;">Request UPI Payout</button>
+                </form>
+            </div>
+
+            <!-- VIEW 4: TRANSACTION HISTORY -->
+            <div id="viewHistory" class="view-section" style="display: none;">
+                <h3 class="section-title">Transaction History</h3>
+                <ul class="txn-list" id="txnList"></ul>
+            </div>
+
+            <!-- VIEW 5: TOP LEADERBOARD -->
+            <div id="viewLeaderboard" class="view-section" style="display: none;">
+                <h3 class="section-title">🏆 Today's Top Winners</h3>
+                <div class="leaderboard-card" style="background: #0f172a; border-radius: 10px; padding: 12px; border: 1px solid #334155;">
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 0.85rem;">
+                        <span>🥇 <b>Rahul Sharma</b></span>
+                        <span style="color: #4ade80; font-weight: 700;">+₹2,450</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 0.85rem;">
+                        <span>🥈 <b>Amit Kumar</b></span>
+                        <span style="color: #4ade80; font-weight: 700;">+₹1,820</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 0.85rem;">
+                        <span>🥉 <b>Vikas Verma</b></span>
+                        <span style="color: #4ade80; font-weight: 700;">+₹950</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.85rem;">
+                        <span>4️⃣ <b>Saddam Khan</b></span>
+                        <span style="color: #4ade80; font-weight: 700;">+₹600</span>
                     </div>
                 </div>
             </div>
 
-            <div class="emoji-bar">
-                <button onclick="sendEmoji('😃')">😃</button>
-                <button onclick="sendEmoji('🔥')">🔥</button>
-                <button onclick="sendEmoji('👍')">👍</button>
-                <button onclick="sendEmoji('👑')">👑</button>
-            </div>
-            <div id="floating-emoji" class="floating-emoji-box"></div>
-            <div class="controls"><p id="status">Red Player's Turn</p></div>
         </div>
     </div>
+</div>
 
-    <!-- MODALS -->
-    <!-- BET AMOUNT MODAL -->
-    <div id="bet-modal" class="modal hidden">
-        <div class="modal-card">
-            <h3>💰 SET ENTRY AMOUNT</h3>
-            <p style="font-size: 12px; color: #94a3b8; text-align: center;">Khelne ke liye entry amount dalein:</p>
-            <div class="input-group">
-                <input type="number" id="bet-amount-input" value="50" min="10" placeholder="Enter Amount">
-            </div>
-            <button class="primary-btn" onclick="confirmAndStartGame()">START GAME</button>
-            <button class="action-btn close-btn" style="width:100%; margin-top:5px; background:#ef4444; border:none; padding:10px; border-radius:8px; cursor:pointer;" onclick="toggleModal('bet-modal', false)">CANCEL</button>
-        </div>
-    </div>
-
-    <!-- HIGH-DIGITAL PROFILE MODAL -->
-    <div id="profile-modal" class="modal hidden">
-        <div class="modal-card digital-screen-modal">
-            <div class="digital-header">
-                <h2>HUD // PROFILE</h2>
-                <button class="cyber-btn" onclick="toggleModal('profile-modal', false)">✕</button>
-            </div>
-            <div class="profile-core">
-                <div class="avatar-glow-box" title="Active Avatar">
-                    <span class="big-avatar" id="display-avatar">👑</span>
-                    <div class="status-badge"></div>
-                </div>
-                <div class="input-cyber-group">
-                    <label>OPERATOR USERNAME</label>
-                    <input type="text" id="username-input" value="Player">
-                </div>
-                <div class="stats-hud-grid">
-                    <div class="hud-box">
-                        <span class="hud-val" id="hud-coins">1,000</span>
-                        <span class="hud-lbl">🪙 CREDITS</span>
-                    </div>
-                    <div class="hud-box">
-                        <span class="hud-val" id="hud-wins">0</span>
-                        <span class="hud-lbl">🏆 VICTORIES</span>
-                    </div>
-                    <div class="hud-box">
-                        <span class="hud-val" id="hud-matches">0</span>
-                        <span class="hud-lbl">🎮 MATCHES</span>
-                    </div>
-                    <div class="hud-box">
-                        <span class="hud-val" id="hud-winrate">0%</span>
-                        <span class="hud-lbl">📈 WIN RATE</span>
-                    </div>
-                </div>
-                <button class="save-cyber-btn" onclick="saveProfileChanges()">UPDATE SYSTEM DATA</button>
+<!-- SPIN WHEEL MODAL -->
+<div id="spinModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <h3>🎡 Daily Lucky Spin</h3>
+        <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 15px;">Spin to win free wallet bonus cash!</p>
+        <div class="wheel-wrapper">
+            <div class="wheel-pointer">▼</div>
+            <div id="wheel" class="wheel">
+                <span>₹5</span><span>₹2</span><span>₹10</span><span>₹1</span><span>₹20</span><span>FREE</span>
             </div>
         </div>
+        <button onclick="spinWheel()" id="spinBtn" style="margin-top: 20px;">Spin Now!</button>
+        <button class="secondary-btn" onclick="closeSpinModal()">Close</button>
     </div>
+</div>
 
-    <div id="shop-modal" class="modal hidden">
-        <div class="modal-card">
-            <h3>🛒 SOCIAL SHOP</h3>
-            <div class="shop-item"><span>✨ Gold Dice</span><button onclick="buyItem('Gold Dice', 500, 'gold')" class="buy-btn">🪙 500</button></div>
-            <div class="shop-item"><span>🔥 Neon Board</span><button onclick="buyItem('Neon Theme', 1200, 'neon')" class="buy-btn">🪙 1,200</button></div>
-            <button class="primary-btn close-btn" onclick="toggleModal('shop-modal', false)">CLOSE</button>
-        </div>
-    </div>
-
-    <div id="settings-modal" class="modal hidden">
-        <div class="modal-card">
-            <h3>⚙️ SETTINGS</h3>
-            <div class="setting-item"><span>Sound FX</span><input type="checkbox" id="sound-toggle" checked></div>
-            <div class="setting-item"><span>BGM</span><input type="checkbox" id="bgm-toggle" onchange="toggleBGM(this.checked)"></div>
-            <button class="primary-btn close-btn" onclick="toggleModal('settings-modal', false)">SAVE</button>
-        </div>
-    </div>
-
-    <div id="leaderboard-modal" class="modal hidden">
-        <div class="modal-card">
-            <h3>🏆 LEADERBOARD</h3>
-            <div id="leaderboard-list" class="leaderboard-box"></div>
-            <button class="primary-btn close-btn" onclick="toggleModal('leaderboard-modal', false)">CLOSE</button>
-        </div>
-    </div>
-
-    <div id="streak-modal" class="modal hidden">
-        <div class="modal-card">
-            <h3>🎁 DAILY STREAK</h3>
-            <button class="primary-btn" onclick="claimRewardAction()">CLAIM 🪙 100</button>
-            <button class="action-btn close-btn" style="margin-top:10px;" onclick="toggleModal('streak-modal', false)">CLOSE</button>
-        </div>
-    </div>
-
-    <div id="spin-modal" class="modal hidden">
-        <div class="modal-card">
-            <h3>🎡 LUCKY SPIN</h3>
-            <div class="wheel-container">
-                <div class="wheel-pointer">▼</div>
-                <div class="wheel" id="wheel-board">
-                    <div class="wheel-section sec-1">🪙 100</div>
-                    <div class="wheel-section sec-2">🪙 200</div>
-                    <div class="wheel-section sec-3">🪙 300</div>
-                    <div class="wheel-section sec-4">🪙 500</div>
-                </div>
-            </div>
-            <button class="primary-btn" onclick="startSpinAnimation()">SPIN!</button>
-            <button class="action-btn close-btn" onclick="toggleModal('spin-modal', false)">CLOSE</button>
-        </div>
-    </div>
-
-    <div id="friends-modal" class="modal hidden">
-        <div class="modal-card">
-            <h3>🌐 ROOM CODE</h3>
-            <div class="input-group"><input type="text" id="room-code-input" placeholder="Enter Room Code"></div>
-            <button class="primary-btn" style="margin-bottom: 8px;" onclick="joinCustomRoom()">JOIN ROOM</button>
-            <button class="action-btn" style="width:100%; color:#51cf66; background:#334155; border:none; padding:10px; border-radius:8px; cursor:pointer;" onclick="createCustomRoom()">CREATE ROOM</button>
-            <p id="room-status-msg" style="font-size: 11px; color: #ffd700; margin-top: 5px;"></p>
-            <button class="primary-btn close-btn" style="margin-top:10px;" onclick="toggleModal('friends-modal', false)">CLOSE</button>
-        </div>
-    </div>
-
-    <div id="chat-modal" class="modal hidden">
-        <div class="modal-card">
-            <h3>💬 CHAT</h3>
-            <button class="primary-btn close-btn" onclick="toggleModal('chat-modal', false)">CLOSE</button>
-        </div>
-    </div>
-
-    <!-- Appwrite CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.1"></script>
-    <script src="script.js"></script>
+<script src="ludoEngine.js"></script>
+<script src="appwriteWallet.js"></script>
 </body>
 </html>
