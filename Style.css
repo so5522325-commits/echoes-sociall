@@ -288,3 +288,4 @@ canvas { width: 100%; height: 100%; display: block; cursor: pointer; }
 .txn-item.expense { border-left-color: #f87171; }
 .txn-title { font-weight: 600; color: #f8fafc; font-size: 0.85rem; }
 .txn-amount { font-weight: 700; font-size: 0.9rem; }
+    
