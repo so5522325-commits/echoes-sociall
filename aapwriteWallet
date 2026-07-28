@@ -63,7 +63,8 @@ function triggerVibration() {
 
 function toggleSound() {
     isSoundEnabled = !isSoundEnabled;
-    document.getElementById('soundToggleBtn').textContent = isSoundEnabled ? '🔊' : '🔇';
+    const btn = document.getElementById('soundToggleBtn');
+    if (btn) btn.textContent = isSoundEnabled ? '🔊' : '🔇';
 }
 
 async function checkSession() {
@@ -76,9 +77,22 @@ async function checkSession() {
         document.getElementById('walletBox').classList.add('active');
         loadTransactions();
         showView('home');
+        checkReferralBonus();
     } catch (err) {
         document.getElementById('authBox').classList.add('active');
         document.getElementById('walletBox').classList.remove('active');
+    }
+}
+
+async function checkReferralBonus() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refId = urlParams.get('ref');
+    if (refId && currentUser && refId !== currentUser.$id) {
+        const hasClaimedRef = localStorage.getItem(`ref_claimed_${currentUser.$id}`);
+        if (!hasClaimedRef) {
+            localStorage.setItem(`ref_claimed_${currentUser.$id}`, 'true');
+            await addTransactionRecord(`🎁 Referral Join Bonus`, 50, 'income');
+        }
     }
 }
 
@@ -123,16 +137,16 @@ function showView(viewName) {
         if (el) el.style.display = (v === viewName) ? 'block' : 'none';
     });
 
-    document.getElementById('backHomeBtn').style.display = (viewName === 'home') ? 'none' : 'block';
+    const backBtn = document.getElementById('backHomeBtn');
+    if (backBtn) backBtn.style.display = (viewName === 'home') ? 'none' : 'block';
     
-    if (viewName === 'arena' && !ludoEngineInstance) {
+    if (viewName === 'arena' && !ludoEngineInstance && window.LudoEngine) {
         setTimeout(() => {
             ludoEngineInstance = new window.LudoEngine('ludoBoard');
         }, 100);
     }
 }
 
-// Security Validation & Transactions Engine
 async function loadTransactions() {
     if (!currentUser) return;
     try {
@@ -150,13 +164,18 @@ async function loadTransactions() {
 
 function renderTransactions() {
     const txnListEl = document.getElementById('txnList');
+    if (!txnListEl) return;
     txnListEl.innerHTML = '';
     let income = 0, expense = 0;
 
     allTransactions.forEach(txn => {
         const amt = parseFloat(txn.amount);
-        if (txn.type === 'income') income += amt;
-        else expense += amt;
+        // Ensure strictly type checking for income vs expense
+        if (txn.type === 'income') {
+            income += amt;
+        } else {
+            expense += amt;
+        }
 
         const li = document.createElement('li');
         li.className = `txn-item ${txn.type}`;
@@ -169,6 +188,7 @@ function renderTransactions() {
         txnListEl.appendChild(li);
     });
 
+    // Correct balance calculation (Income - Expense)
     currentBalance = Math.max(0, income - expense);
     document.getElementById('totalBalance').textContent = `₹${currentBalance.toFixed(2)}`;
     document.getElementById('totalIncome').textContent = `+₹${income.toFixed(2)}`;
@@ -179,6 +199,7 @@ function renderTransactions() {
 
 function updateVipTier(totalSpent) {
     const vipBadge = document.getElementById('vipTierDisplay');
+    if (!vipBadge) return;
     if (totalSpent >= 1000) {
         vipBadge.textContent = "🥇 VIP Level 3 (Gold)";
         vipBadge.style.color = "#facc15";
@@ -191,7 +212,7 @@ function updateVipTier(totalSpent) {
     }
 }
 
-// Razorpay Auto Deposit Handler
+// Direct Deposit Handler (Adds to Income -> Increases Balance)
 document.getElementById('txnForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const amount = parseFloat(document.getElementById('txnAmount').value);
@@ -201,35 +222,18 @@ document.getElementById('txnForm').addEventListener('submit', async (e) => {
         return;
     }
 
-    const options = {
-        "key": "rzp_test_YOUR_RAZORPAY_KEY",
-        "amount": amount * 100,
-        "currency": "INR",
-        "name": "Pro Ludo League",
-        "description": "Wallet Balance Deposit",
-        "handler": async function (response) {
-            await addTransactionRecord(`💳 Auto Deposit (Razorpay)`, amount, 'income');
-            playSound('win');
-            alert(`Payment Successful! TXN ID: ${response.razorpay_payment_id}`);
-            document.getElementById('txnAmount').value = '';
-            showView('home');
-        },
-        "prefill": { "email": currentUser.email },
-        "theme": { "color": "#6366f1" }
-    };
+    let userAction = confirm(`Deposit ₹${amount} in your wallet?`);
 
-    try {
-        const rzp = new Razorpay(options);
-        rzp.open();
-    } catch (err) {
-        await addTransactionRecord(`💳 Deposit Cash`, amount, 'income');
+    if (userAction) {
+        await addTransactionRecord(`📱 Direct Wallet Deposit`, amount, 'income');
         playSound('win');
+        alert(`Deposit Successful! ₹${amount} aapke wallet me jod diye gaye hain.`);
         document.getElementById('txnAmount').value = '';
         showView('home');
     }
 });
 
-// UPI Withdrawal Form
+// UPI Withdrawal Form (Adds to Expense -> Decreases Balance)
 document.getElementById('withdrawForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const upi = document.getElementById('withdrawUpi').value;
@@ -241,6 +245,7 @@ document.getElementById('withdrawForm').addEventListener('submit', async (e) => 
     }
 
     await addTransactionRecord(`💸 Withdrawal Payout (${upi})`, amount, 'expense');
+    
     alert("Withdrawal Request Submitted Successfully!");
     document.getElementById('withdrawAmount').value = '';
     showView('home');
@@ -261,7 +266,7 @@ async function addTransactionRecord(title, amount, type) {
     }
 }
 
-// Spin Wheel Feature
+// Spin Wheel Feature (Adds Bonus as Income)
 function openSpinModal() { document.getElementById('spinModal').style.display = 'flex'; }
 function closeSpinModal() { document.getElementById('spinModal').style.display = 'none'; }
 
@@ -294,7 +299,29 @@ function spinWheel() {
     }, 3200);
 }
 
-// Daily Streak Claim
+// Scratch Card Feature Logic (Adds Reward as Income)
+function openScratchModal() {
+    document.getElementById('scratchModal').style.display = 'flex';
+    document.getElementById('scratchCover').classList.remove('scratched');
+}
+function closeScratchModal() { document.getElementById('scratchModal').style.display = 'none'; }
+
+async function revealScratchCard() {
+    const cover = document.getElementById('scratchCover');
+    if (cover.classList.contains('scratched')) return;
+
+    cover.classList.add('scratched');
+    playSound('win');
+    if (window.confetti) confetti();
+
+    const scratchRewards = [5, 10, 15, 20, 25];
+    const reward = scratchRewards[Math.floor(Math.random() * scratchRewards.length)];
+    document.getElementById('scratchRewardText').textContent = `₹${reward} Cash!`;
+    
+    await addTransactionRecord(`🎫 Scratch Card Reward`, reward, 'income');
+}
+
+// Daily Streak Claim (Adds Bonus as Income)
 async function claimDailyStreak() {
     const btn = document.getElementById('claimStreakBtn');
     btn.disabled = true;
@@ -304,19 +331,27 @@ async function claimDailyStreak() {
     alert("Day 1 Login Bonus ₹1 added to your wallet!");
 }
 
-// WhatsApp Share Invite
+// WhatsApp Share Invite with Dynamic Referral Link
 function shareOnWhatsApp() {
     const referralLink = `${window.location.origin}?ref=${currentUser ? currentUser.$id : 'LUDO'}`;
     const text = `🎲 Ludo Pro League par mere saath Ludo khelo aur paao ₹50 Free Bonus Cash! Instant withdrawal to UPI. Direct Join Link: ${referralLink}`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
 }
 
-// Quick Chat / Emotes
+// Quick Chat / Emotes with Floating Animation
 function sendChat(msg) {
-    alert(`You sent: ${msg}`);
+    playSound('dice');
+    const container = document.getElementById('floatingEmojiContainer');
+    if (container) {
+        const span = document.createElement('div');
+        span.className = 'floating-emoji-container';
+        span.textContent = msg;
+        container.appendChild(span);
+        setTimeout(() => span.remove(), 1500);
+    }
 }
 
-// Match Flow with Anti-Cheat Timer
+// Match Flow with Anti-Cheat Timer & Entry Fee Deduction (Expense)
 async function startMatch() {
     const bet = parseFloat(document.getElementById('betAmountSelect').value);
     
@@ -326,6 +361,7 @@ async function startMatch() {
         return;
     }
 
+    // Match join karte hi amount wallet se minus (expense) ho jayega
     await addTransactionRecord(`🎲 Match Entry Fee`, bet, 'expense');
     document.getElementById('rollDiceBtn').disabled = false;
     missedTurnsCount = 0;
