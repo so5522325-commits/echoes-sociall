@@ -117,6 +117,16 @@
                         <div class="arrow-btn">➔</div>
                     </div>
 
+                    <!-- NEW: Scratch Card Menu Option Added -->
+                    <div class="menu-card" onclick="openScratchModal()">
+                        <div class="menu-icon">🎫</div>
+                        <div class="menu-info">
+                            <div class="menu-title">Daily Scratch Card</div>
+                            <div class="menu-desc">Scratch & Reveal Instant Cash</div>
+                        </div>
+                        <div class="arrow-btn">➔</div>
+                    </div>
+
                     <div class="menu-card" onclick="showView('leaderboard')">
                         <div class="menu-icon">🏆</div>
                         <div class="menu-info">
@@ -184,6 +194,8 @@
 
                     <div class="board-container">
                         <canvas id="ludoBoard" width="450" height="450"></canvas>
+                        <!-- Floating Emoji / Chat Notification Container -->
+                        <div id="floatingEmojiContainer" class="floating-emoji-container"></div>
                     </div>
 
                     <div class="game-controls">
@@ -198,6 +210,7 @@
                         <button class="chat-chip" onclick="sendChat('Well Played! 👏')">Well Played! 👏</button>
                         <button class="chat-chip" onclick="sendChat('Hurry Up! ⚡')">Hurry Up! ⚡</button>
                         <button class="chat-chip" onclick="sendChat('Oops! 😅')">Oops! 😅</button>
+                        <button class="chat-chip" onclick="sendChat('🔥')">🔥</button>
                     </div>
                 </div>
             </div>
@@ -278,8 +291,20 @@
     </div>
 </div>
 
+<!-- NEW: SCRATCH CARD MODAL -->
+<div id="scratchModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <h3>🎫 Daily Scratch Card</h3>
+        <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 15px;">Scratch below to reveal your surprise reward!</p>
+        <div class="scratch-card-box" id="scratchCardArea" onclick="revealScratchCard()">
+            <div id="scratchCover" class="scratch-cover">Tap to Scratch ✨</div>
+            <div id="scratchRewardText" class="scratch-reward">₹15 Cash!</div>
+        </div>
+        <button class="secondary-btn" onclick="closeScratchModal()" style="margin-top: 15px;">Close</button>
+    </div>
+</div>
+
 <script src="ludoEngine.js"></script>
 <script src="appwriteWallet.js"></script>
 </body>
-                            </html>
-                                
+</html>
